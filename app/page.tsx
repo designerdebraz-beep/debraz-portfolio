@@ -109,7 +109,7 @@ function SkillBar({name, level, color}: {
   color: string;
 }) {
   const [w, setW] = useState(0);
-  const ref = useRef();
+ const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const obs = new IntersectionObserver(([e])=>{ if(e.isIntersecting) setW(level); },{threshold:0.3});
     if(ref.current) obs.observe(ref.current);
@@ -137,70 +137,181 @@ function SkillBar({name, level, color}: {
 
 
 
-function ProjectModal({project, onClose}) {
+// function ProjectModal({project, onClose}) {
   
-  useEffect(()=>{
-    const h = e=>{ if(e.key==="Escape") onClose(); };
-    window.addEventListener("keydown",h);
-    return ()=>window.removeEventListener("keydown",h);
-  },[onClose]);
+//   useEffect(()=>{
+//     const h = e=>{ if(e.key==="Escape") onClose(); };
+//     window.addEventListener("keydown",h);
+//     return ()=>window.removeEventListener("keydown",h);
+//   },[onClose]);
+//   return (
+//     <div onClick={onClose} style={{
+//       position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",backdropFilter:"blur(6px)",
+//       zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20
+//     }}>
+//       <div onClick={e=>e.stopPropagation()} style={{
+//         background:"var(--card)",border:"1px solid var(--border)",borderRadius:20,
+//         maxWidth:640,width:"100%",maxHeight:"85vh",overflowY:"auto",padding:32
+//       }}>
+//         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
+//           <div>
+//             <div style={{fontSize:40,marginBottom:8}}>{project.emoji}</div>
+//             <h2 style={{fontSize:26,fontWeight:700,color:"var(--text)",margin:0}}>{project.name}</h2>
+//             <p style={{color:project.color,fontWeight:600,margin:"4px 0 0"}}>{project.tagline}</p>
+//           </div>
+//           <button onClick={onClose} style={{
+//             background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:10,
+//             width:36,height:36,cursor:"pointer",fontSize:18,color:"var(--muted)",
+//             display:"flex",alignItems:"center",justifyContent:"center"
+//           }}>✕</button>
+//         </div>
+//         <p style={{color:"var(--muted)",lineHeight:1.7,marginBottom:24}}>{project.desc}</p>
+//         <div style={{marginBottom:20}}>
+//           <h3 style={{fontSize:14,fontWeight:700,color:"var(--text)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Tech Stack</h3>
+//           <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+//             {project.tech.map(t=>(
+//               <span key={t} style={{
+//                 padding:"4px 12px",borderRadius:99,fontSize:12,fontWeight:600,
+//                 background:`${project.color}20`,color:project.color,border:`1px solid ${project.color}40`
+//               }}>{t}</span>
+//             ))}
+//           </div>
+//         </div>
+//         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
+//           {[
+//             {label:"✦ Features",items:project.features,color:"#10b981"},
+//             {label:"⚠ Challenges",items:project.challenges,color:"#f59e0b"},
+//             {label:"🚀 Future Plans",items:project.future,color:"#8b5cf6"},
+//           ].map(s=>(
+//             <div key={s.label} style={{background:"var(--bg2)",borderRadius:12,padding:16}}>
+//               <p style={{fontWeight:700,fontSize:12,color:s.color,marginBottom:8,textTransform:"uppercase",letterSpacing:1}}>{s.label}</p>
+//               {s.items.map(i=>(
+//                 <div key={i} style={{fontSize:13,color:"var(--muted)",paddingLeft:8,borderLeft:`2px solid ${s.color}40`,marginBottom:6}}>{i}</div>
+//               ))}
+//             </div>
+//           ))}
+//         </div>
+//         <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+//           <a href={project.live} style={{
+//             flex:1,padding:"12px 20px",borderRadius:12,background:project.color,
+//             color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none",textAlign:"center",
+//             border:`2px solid ${project.color}`
+//           }}>🌐 Live Demo</a>
+//           <a href={project.github} style={{
+//             flex:1,padding:"12px 20px",borderRadius:12,background:"transparent",
+//             color:"var(--text)",fontWeight:700,fontSize:14,textDecoration:"none",textAlign:"center",
+//             border:"2px solid var(--border)"
+//           }}>⌥ GitHub Repo</a>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+// ১. প্রজেক্ট অবজেক্টের টাইপগুলো এখানে ডিফাইন করা হলো
+interface ProjectType {
+  emoji: string;
+  name: string;
+  tagline: string;
+  color: string;
+  desc: string;
+  tech: string[];
+  features?: string[];
+  challenges?: string[];
+  future?: string[];
+  live: string;
+  github: string;
+}
+
+// ২. মেইন মোডাল ফাংশন টাইপসহ
+export  function ProjectModal({
+  project,
+  onClose,
+}: {
+  project: ProjectType | null; // প্রজেক্ট অবজেক্ট অথবা নাল হতে পারে
+  onClose: () => void;         // ওনক্লোজ একটি ফাংশন
+}) {
+  
+  useEffect(() => {
+    // এখানে e: KeyboardEvent টাইপ দেওয়া হয়েছে
+    const h = (e: KeyboardEvent) => { 
+      if (e.key === "Escape") onClose(); 
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
+
+  // প্রজেক্ট যদি না থাকে তাহলে মোডাল রেন্ডার হবে না
+  if (!project) return null;
+
   return (
-    <div onClick={onClose} style={{
-      position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",backdropFilter:"blur(6px)",
-      zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20
-    }}>
-      <div onClick={e=>e.stopPropagation()} style={{
-        background:"var(--card)",border:"1px solid var(--border)",borderRadius:20,
-        maxWidth:640,width:"100%",maxHeight:"85vh",overflowY:"auto",padding:32
+  <div onClick={onClose} style={{
+  position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)",
+  zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20
+}}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: "var(--card)", border: "1px solid var(--border)", borderRadius: 20,
+        maxWidth: 640, width: "100%", maxHeight: "85vh", overflowY: "auto", padding: 32
       }}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
           <div>
-            <div style={{fontSize:40,marginBottom:8}}>{project.emoji}</div>
-            <h2 style={{fontSize:26,fontWeight:700,color:"var(--text)",margin:0}}>{project.name}</h2>
-            <p style={{color:project.color,fontWeight:600,margin:"4px 0 0"}}>{project.tagline}</p>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>{project.emoji}</div>
+            <h2 style={{ fontSize: 26, fontWeight: 700, color: "var(--text)", margin: 0 }}>{project.name}</h2>
+            <p style={{ color: project.color, fontWeight: 600, margin: "4px 0 0" }}>{project.tagline}</p>
           </div>
           <button onClick={onClose} style={{
-            background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:10,
-            width:36,height:36,cursor:"pointer",fontSize:18,color:"var(--muted)",
-            display:"flex",alignItems:"center",justifyContent:"center"
+            background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 10,
+            width: 36, height: 36, cursor: "pointer", fontSize: 18, color: "var(--muted)",
+            display: "flex", alignItems: "center", justifyContent: "center"
           }}>✕</button>
         </div>
-        <p style={{color:"var(--muted)",lineHeight:1.7,marginBottom:24}}>{project.desc}</p>
-        <div style={{marginBottom:20}}>
-          <h3 style={{fontSize:14,fontWeight:700,color:"var(--text)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Tech Stack</h3>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-            {project.tech.map(t=>(
+        <p style={{ color: "var(--muted)", lineHeight: 1.7, marginBottom: 24 }}>{project.desc}</p>
+        
+        {/* Tech Stack */}
+        <div style={{ marginBottom: 20 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Tech Stack</h3>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {project.tech?.map(t => (
               <span key={t} style={{
-                padding:"4px 12px",borderRadius:99,fontSize:12,fontWeight:600,
-                background:`${project.color}20`,color:project.color,border:`1px solid ${project.color}40`
+                padding: "4px 12px", borderRadius: 99, fontSize: 12, fontWeight: 600,
+                background: `${project.color}20`, color: project.color, border: `1px solid ${project.color}40`
               }}>{t}</span>
             ))}
           </div>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
+
+        {/* Features, Challenges & Future Plans */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
           {[
-            {label:"✦ Features",items:project.features,color:"#10b981"},
-            {label:"⚠ Challenges",items:project.challenges,color:"#f59e0b"},
-            {label:"🚀 Future Plans",items:project.future,color:"#8b5cf6"},
-          ].map(s=>(
-            <div key={s.label} style={{background:"var(--bg2)",borderRadius:12,padding:16}}>
-              <p style={{fontWeight:700,fontSize:12,color:s.color,marginBottom:8,textTransform:"uppercase",letterSpacing:1}}>{s.label}</p>
-              {s.items.map(i=>(
-                <div key={i} style={{fontSize:13,color:"var(--muted)",paddingLeft:8,borderLeft:`2px solid ${s.color}40`,marginBottom:6}}>{i}</div>
+            { label: "✦ Features", items: project.features, color: "#10b981" },
+            { label: "⚠ Challenges", items: project.challenges, color: "#f59e0b" },
+            { label: "🚀 Future Plans", items: project.future, color: "#8b5cf6" },
+          ].map(s => (
+            <div key={s.label} style={{ background: "var(--bg2)", borderRadius: 12, padding: 16 }}>
+              <p style={{ fontWeight: 700, fontSize: 12, color: s.color, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>{s.label}</p>
+              {s.items?.map(i => (
+                <div key={i} style={{ fontSize: 13, color: "var(--muted)", paddingLeft: 8, borderLeft: `2px solid ${s.color}40`, marginBottom: 6 }}>{i}</div>
               ))}
             </div>
           ))}
         </div>
-        <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-          <a href={project.live} style={{
-            flex:1,padding:"12px 20px",borderRadius:12,background:project.color,
-            color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none",textAlign:"center",
-            border:`2px solid ${project.color}`
+
+        {/* Buttons */}
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <a href={project.live} target="_blank" rel="noreferrer" style={{
+            flex: 1, padding: "12px 20px", borderRadius: 12, background: project.color,
+            color: "#fff", fontWeight: 700, fontSize: 14, textDecoration: "none", textAlign: "center",
+            border: `2px solid ${project.color}`
           }}>🌐 Live Demo</a>
-          <a href={project.github} style={{
-            flex:1,padding:"12px 20px",borderRadius:12,background:"transparent",
-            color:"var(--text)",fontWeight:700,fontSize:14,textDecoration:"none",textAlign:"center",
-            border:"2px solid var(--border)"
+          <a href={project.github} target="_blank" rel="noreferrer" style={{
+            flex: 1, padding: "12px 20px", borderRadius: 12, background: "transparent",
+            color: "var(--text)", fontWeight: 700, fontSize: 14, textDecoration: "none", textAlign: "center",
+            border: "2px solid var(--border)"
           }}>⌥ GitHub Repo</a>
         </div>
       </div>
@@ -212,7 +323,7 @@ export default function Portfolio() {
   const [dark, setDark] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
-  const [activeProject, setActiveProject] = useState(null);
+ const [activeProject, setActiveProject] = useState<ProjectType | null>(null);
   const [activeSkillTab, setActiveSkillTab] = useState("Frontend");
   
   const [sent, setSent] = useState(false);
@@ -239,7 +350,7 @@ export default function Portfolio() {
     return ()=>obs.disconnect();
   },[]);
 
-  const scrollTo = id => {
+  const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({behavior:"smooth"});
     setMenuOpen(false);
   };
@@ -499,9 +610,9 @@ export default function Portfolio() {
             ))}
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:24}}>
-            {SKILLS[activeSkillTab].map(s=>(
+            {SKILLS[activeSkillTab as keyof typeof SKILLS]?.map(s=>(
               <div key={s.name} className="card">
-                <SkillBar name={s.name} level={s.level} color={skillColors[activeSkillTab]}/>
+                <SkillBar name={s.name} level={s.level} color={skillColors[activeSkillTab as keyof typeof SKILLS]}/>
               </div>
             ))}
           </div>
